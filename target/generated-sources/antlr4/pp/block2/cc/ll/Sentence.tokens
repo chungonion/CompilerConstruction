@@ -1,0 +1,8 @@
+ENDMARK=4
+TYPO=6
+VERB=2
+ADJECTIVE=3
+WS=5
+NOUN=1
+'.'=4
+'love'=2
