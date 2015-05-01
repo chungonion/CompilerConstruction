@@ -3,8 +3,8 @@
  */
 package pp.block2.cc.ll;
 
-import pp.block2.cc.SymbolFactory;
 import pp.block2.cc.NonTerm;
+import pp.block2.cc.SymbolFactory;
 import pp.block2.cc.Term;
 
 /**
