@@ -1,0 +1,11 @@
+EXPR=3
+ELSE=4
+THEN=2
+ASSIGN=5
+WS=6
+IF=1
+'if'=1
+'then'=2
+'else'=4
+'assign'=5
+'expr'=3

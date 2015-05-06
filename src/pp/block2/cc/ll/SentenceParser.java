@@ -135,17 +135,17 @@ public class SentenceParser implements Parser {
 
 	public static void main(String[] args) {
 		if (args.length == 0) {
-			System.err.println("Usage: [text]+");
-		} else {
-			for (String text : args) {
-				CharStream stream = new ANTLRInputStream(text);
-				Lexer lexer = new Sentence(stream);
-				try {
-					System.out.printf("Parse tree: %n%s%n",
-							new SentenceParser().parse(lexer));
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
+			args = new String[] { "all smart undergraduate students love compilers.","smart students love all compilers.", "smart love students.", "smart compilers love compilers" };
+		}
+
+		for (String text : args) {
+			CharStream stream = new ANTLRInputStream(text);
+			Lexer lexer = new Sentence(stream);
+			try {
+				System.out.printf("Parse tree: %n%s%n",
+						new SentenceParser().parse(lexer));
+			} catch (ParseException e) {
+				e.printStackTrace();
 			}
 		}
 	}
