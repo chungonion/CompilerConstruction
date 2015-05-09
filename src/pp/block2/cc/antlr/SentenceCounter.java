@@ -98,5 +98,6 @@ public class SentenceCounter extends SentenceBaseListener {
 		counter.process("all smart students love all compilers");
 		counter.process("undergraduate students love love.");
 		counter.process("all undergraduate students all compilers.");
+		counter.process("all undergraduate students all compilers");
 	}
 }
