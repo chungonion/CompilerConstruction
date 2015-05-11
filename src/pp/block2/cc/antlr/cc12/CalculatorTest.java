@@ -38,6 +38,8 @@ public class CalculatorTest {
         assertEquals(calc.calculate("4^(3-1)^3"),bi(65536));
         assertEquals(calc.calculate("4^2^3*3-4^2^3*2"),bi(65536));
         assertEquals(calc.calculate("1---1"),bi(0));
+        
+        assertEquals(calc.calculate("-4^2"), bi(16));
 	}
 	
 	private BigInteger bi(int value){

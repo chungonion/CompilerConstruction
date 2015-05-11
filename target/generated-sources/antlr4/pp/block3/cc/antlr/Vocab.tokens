@@ -1,0 +1,17 @@
+STR=8
+EQUALS=3
+BOOL=7
+LPAR=4
+NUM=6
+RPAR=5
+HAT=1
+WS=9
+PLUS=2
+'bool'=7
+'-'=3
+'num'=6
+'+'=2
+'*'=1
+')'=5
+'('=4
+'str'=8

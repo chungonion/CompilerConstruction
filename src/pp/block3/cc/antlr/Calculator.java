@@ -15,6 +15,7 @@ public class Calculator extends CalcBaseListener {
 		vals = new ParseTreeProperty<Integer>();
 	}
 
+	
 	@Override
 	public void exitPar(ParContext ctx) {
 		set(ctx, val(ctx.expr()));
