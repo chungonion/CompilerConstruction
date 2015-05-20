@@ -17,18 +17,6 @@ public class TabularBaseListener implements TabularListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterColumnAlignment(@NotNull TabularParser.ColumnAlignmentContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitColumnAlignment(@NotNull TabularParser.ColumnAlignmentContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterEntry(@NotNull TabularParser.EntryContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -60,6 +48,18 @@ public class TabularBaseListener implements TabularListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLine(@NotNull TabularParser.LineContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterText(@NotNull TabularParser.TextContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitText(@NotNull TabularParser.TextContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
