@@ -5,20 +5,22 @@ BEGIN       : '\\begin';
 END         : '\\end';
 LB          : '{';
 RB          : '}';
-ALIGNMENT   : [lcr];
+ALIGNMENT   : [lcr]*;
 AMPERSAND   : '&';
 IDENT       : 'tabular';
-TEXT        : [a-zA-Z0-9 \t\n\r]+;
+TEXT        : [a-zA-Z0-9 ]*;
+NEWLINE     : [\r\n]+;
 
 COMMENT     : '%'.*?'\n' -> skip;
 
 table           : BEGIN LB IDENT RB columns lines END LB IDENT RB;
-columns         : LB columnAlignment RB;
-columnAlignment : ALIGNMENT*;
+columns         : LB ALIGNMENT RB NEWLINE;
 lines           : line+;
-line            : entry+ BACKSLASHES;
-entry           : TEXT AMPERSAND
-                | TEXT;
+line            : entry+ NEWLINE;
+entry           : text AMPERSAND
+                | text BACKSLASHES
+                | AMPERSAND
+                | BACKSLASHES;
+text            : TEXT ;
 
 
-WS          : [ \t\n\r]+ -> skip;

@@ -9,16 +9,6 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface TabularListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link TabularParser#columnAlignment}.
-	 * @param ctx the parse tree
-	 */
-	void enterColumnAlignment(@NotNull TabularParser.ColumnAlignmentContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link TabularParser#columnAlignment}.
-	 * @param ctx the parse tree
-	 */
-	void exitColumnAlignment(@NotNull TabularParser.ColumnAlignmentContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link TabularParser#entry}.
 	 * @param ctx the parse tree
 	 */
@@ -48,6 +38,16 @@ public interface TabularListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLine(@NotNull TabularParser.LineContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TabularParser#text}.
+	 * @param ctx the parse tree
+	 */
+	void enterText(@NotNull TabularParser.TextContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TabularParser#text}.
+	 * @param ctx the parse tree
+	 */
+	void exitText(@NotNull TabularParser.TextContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link TabularParser#lines}.
 	 * @param ctx the parse tree
