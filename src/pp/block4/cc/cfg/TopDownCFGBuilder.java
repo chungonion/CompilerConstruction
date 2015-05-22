@@ -10,18 +10,32 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
 import pp.block4.cc.ErrorListener;
+import pp.block4.cc.cfg.FragmentParser.AssignStatContext;
+import pp.block4.cc.cfg.FragmentParser.BlockStatContext;
+import pp.block4.cc.cfg.FragmentParser.DeclContext;
+import pp.block4.cc.cfg.FragmentParser.IfStatContext;
+import pp.block4.cc.cfg.FragmentParser.PrintStatContext;
 import pp.block4.cc.cfg.FragmentParser.ProgramContext;
+import pp.block4.cc.cfg.FragmentParser.WhileStatContext;
 
 /** Template top-down CFG builder. */
 public class TopDownCFGBuilder extends FragmentBaseListener {
 	/** The CFG being built. */
 	private Graph graph;
+	
+    private ParseTreeProperty<Node> entry;
+    private ParseTreeProperty<Node> exit;
 
 	/** Builds the CFG for a program contained in a given file. */
 	public Graph build(File file) {
-		Graph result = null;
-		ErrorListener listener = new ErrorListener();
+        Graph result = null;
+        ErrorListener listener = new ErrorListener();
+        entry = new ParseTreeProperty<>();
+        exit = new ParseTreeProperty<>();
 		try {
 			CharStream chars = new ANTLRInputStream(new FileReader(file));
 			Lexer lexer = new FragmentLexer(chars);
@@ -48,11 +62,65 @@ public class TopDownCFGBuilder extends FragmentBaseListener {
 
 	/** Builds the CFG for a program given as an ANTLR parse tree. */
 	public Graph build(ProgramContext tree) {
-		this.graph = new Graph();
-		// Fill in
+        this.graph = new Graph();
+        new ParseTreeWalker().walk(this, tree);
+        return graph;
 	}
 
-	/** Adds a node to he CGF, based on a given parse tree node.
+	@Override
+    public void enterBlockStat(BlockStatContext ctx) {
+    }
+
+    @Override
+    public void enterDecl(DeclContext ctx) {
+    }
+
+    @Override
+    public void enterPrintStat(PrintStatContext ctx) {
+    }
+
+    @Override
+    public void enterProgram(ProgramContext ctx) {
+    }
+
+    @Override
+    public void enterWhileStat(WhileStatContext ctx) {
+    }
+
+    @Override
+    public void enterIfStat(IfStatContext ctx) {
+        Node ourEntry = entry.get(ctx);
+        Node ourExit = exit.get(ctx);
+        
+        Node condEntry = addNode(ctx.expr(), "cond");
+        Node tEntry = addNode(ctx.stat(0), "t");
+        Node fEntry = addNode(ctx.stat(1), "f");
+        
+        Node condExit = addNode(ctx.expr(), "cond");
+        Node tExit = addNode(ctx.stat(0), "t");
+        Node fExit = addNode(ctx.stat(1), "f");
+        
+        entry.put(ctx.expr(), condEntry);
+        entry.put(ctx.stat(0), tEntry);
+        entry.put(ctx.stat(1), fEntry);
+        
+        exit.put(ctx.expr(), condExit);
+        exit.put(ctx.stat(0), tExit);
+        exit.put(ctx.stat(1), fExit);
+        
+        ourEntry.addEdge(condEntry);
+        condExit.addEdge(tEntry);
+        condExit.addEdge(fEntry);
+        
+        tExit.addEdge(ourExit);
+        fExit.addEdge(ourExit);
+    }
+
+    @Override
+    public void enterAssignStat(AssignStatContext ctx) {
+    }
+
+    /** Adds a node to he CGF, based on a given parse tree node.
 	 * Gives the CFG node a meaningful ID, consisting of line number and 
 	 * a further indicator.
 	 */
