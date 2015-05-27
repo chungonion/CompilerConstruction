@@ -129,14 +129,19 @@ public class BottomUpCFGBuilder extends FragmentBaseListener {
         Node cond = addNode(ctx, "cond");
         Node after = addNode(ctx, "after");
         Node tBranchEntry = entry.get(ctx.stat(0));
-        Node fBranchEntry = entry.get(ctx.stat(1));
         Node tBranchExit = exit.get(ctx.stat(0));
-        Node fBranchExit = exit.get(ctx.stat(1));
 
         cond.addEdge(tBranchEntry);
-        cond.addEdge(fBranchEntry);
         tBranchExit.addEdge(after);
-        fBranchExit.addEdge(after);
+        
+        if (ctx.stat().size() > 1) {
+            Node fBranchEntry = entry.get(ctx.stat(1));
+            Node fBranchExit = exit.get(ctx.stat(1));
+            cond.addEdge(fBranchEntry);
+            fBranchExit.addEdge(after);
+        } else {
+            cond.addEdge(after);
+        }
         
         entry.put(ctx, cond);
         exit.put(ctx, after);
@@ -154,7 +159,7 @@ public class BottomUpCFGBuilder extends FragmentBaseListener {
 	 * a further indicator.
 	 */
 	private Node addNode(ParserRuleContext node, String text) {
-		return this.graph.addNode((graph.size() + 1) + ": " + text);
+		return this.graph.addNode((graph.size() + 1) + "");
 	}
 
 	/** Main method to build and print the CFG of a simple Java program. */

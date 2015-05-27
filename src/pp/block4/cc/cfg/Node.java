@@ -56,13 +56,14 @@ public class Node {
 	@Override
 	public String toString() {
 		if (this.edges.isEmpty()) {
-			return "Node " + this.id + ": no outgoing edges";
+			return this.id + ";";
 		} else {
 			List<String> targetIds = new ArrayList<>();
+			String s = "";
 			for (Node t : this.edges) {
-				targetIds.add(t.id);
+				s += this.id + " -> " + t.id + "; ";
 			}
-			return "Node " + this.id + ": edges to " + targetIds;
+			return s;
 		}
 	}
 

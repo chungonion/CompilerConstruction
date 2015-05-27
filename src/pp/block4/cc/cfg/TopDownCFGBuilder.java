@@ -20,6 +20,7 @@ import pp.block4.cc.cfg.FragmentParser.DeclContext;
 import pp.block4.cc.cfg.FragmentParser.IfStatContext;
 import pp.block4.cc.cfg.FragmentParser.PrintStatContext;
 import pp.block4.cc.cfg.FragmentParser.ProgramContext;
+import pp.block4.cc.cfg.FragmentParser.StatContext;
 import pp.block4.cc.cfg.FragmentParser.WhileStatContext;
 
 /** Template top-down CFG builder. */
@@ -69,22 +70,78 @@ public class TopDownCFGBuilder extends FragmentBaseListener {
 
 	@Override
     public void enterBlockStat(BlockStatContext ctx) {
+        Node ourEntry = entry.get(ctx);
+        Node ourExit = exit.get(ctx);
+        
+        for (int i = 0; i < ctx.stat().size(); i++) {
+            Node statEntry = addNode(ctx.stat(i), "");
+            Node statExit = addNode(ctx.stat(i), "");
+            
+            entry.put(ctx.stat(i), statEntry);
+            exit.put(ctx.stat(i), statExit);
+            
+            if (i > 0) {
+                exit.get(ctx.stat(i-1)).addEdge(statEntry);
+            }
+        }
+        
+        if (ctx.stat().size() > 0) {
+            ourEntry.addEdge(entry.get(ctx.stat(0)));
+            exit.get(ctx.stat(ctx.stat().size()-1)).addEdge(ourExit);
+        } else {
+            ourEntry.addEdge(ourExit);
+        }
     }
 
     @Override
     public void enterDecl(DeclContext ctx) {
+        entry.get(ctx).addEdge(exit.get(ctx));
     }
 
     @Override
     public void enterPrintStat(PrintStatContext ctx) {
+        entry.get(ctx).addEdge(exit.get(ctx));
     }
 
     @Override
     public void enterProgram(ProgramContext ctx) {
+        for (int i = 0; i < ctx.stat().size(); i++) {
+            Node statEntry = addNode(ctx.stat(i), "");
+            Node statExit = addNode(ctx.stat(i), "");
+            
+            entry.put(ctx.stat(i), statEntry);
+            exit.put(ctx.stat(i), statExit);
+            
+            if (i > 0) {
+                exit.get(ctx.stat(i-1)).addEdge(statEntry);
+            }
+        }
     }
 
     @Override
     public void enterWhileStat(WhileStatContext ctx) {
+        Node ourEntry = entry.get(ctx);
+        Node ourExit = exit.get(ctx);
+        
+        Node condEntry = addNode(ctx.expr(), "cond");
+        Node bodyEntry = addNode(ctx.stat(), "body");
+        
+        Node condExit = addNode(ctx.expr(), "cond");
+        Node bodyExit = addNode(ctx.stat(), "body");
+        
+        ourEntry.addEdge(condEntry);
+        
+        condExit.addEdge(bodyEntry);
+        condExit.addEdge(ourExit);
+        
+        bodyExit.addEdge(condEntry);
+        
+        condEntry.addEdge(condExit);
+        
+        entry.put(ctx.expr(), condEntry);
+        entry.put(ctx.stat(), bodyEntry);
+        exit.put(ctx.expr(), condExit);
+        exit.put(ctx.stat(), bodyExit);
     }
 
     @Override
@@ -93,41 +150,49 @@ public class TopDownCFGBuilder extends FragmentBaseListener {
         Node ourExit = exit.get(ctx);
         
         Node condEntry = addNode(ctx.expr(), "cond");
-        Node tEntry = addNode(ctx.stat(0), "t");
-        Node fEntry = addNode(ctx.stat(1), "f");
-        
         Node condExit = addNode(ctx.expr(), "cond");
+        
+        Node tEntry = addNode(ctx.stat(0), "t");
         Node tExit = addNode(ctx.stat(0), "t");
-        Node fExit = addNode(ctx.stat(1), "f");
+        
+        if (ctx.stat().size() > 1) {
+            Node fEntry = addNode(ctx.stat(1), "f");
+            Node fExit = addNode(ctx.stat(1), "f");
+            entry.put(ctx.stat(1), fEntry);
+            exit.put(ctx.stat(1), fExit);
+            condExit.addEdge(fEntry);
+            fExit.addEdge(ourExit);
+        } else {
+            condExit.addEdge(ourExit);
+        }
         
         entry.put(ctx.expr(), condEntry);
         entry.put(ctx.stat(0), tEntry);
-        entry.put(ctx.stat(1), fEntry);
         
         exit.put(ctx.expr(), condExit);
         exit.put(ctx.stat(0), tExit);
-        exit.put(ctx.stat(1), fExit);
         
         ourEntry.addEdge(condEntry);
         condExit.addEdge(tEntry);
-        condExit.addEdge(fEntry);
         
         tExit.addEdge(ourExit);
-        fExit.addEdge(ourExit);
+        
+        condEntry.addEdge(condExit);
         
         //TODO: in een (terminaal) statement entry aan exit meteen doorlinken.
     }
 
     @Override
     public void enterAssignStat(AssignStatContext ctx) {
+        entry.get(ctx).addEdge(exit.get(ctx));
     }
 
-    /** Adds a node to he CGF, based on a given parse tree node.
+    /** Adds a node to he CFG, based on a given parse tree node.
 	 * Gives the CFG node a meaningful ID, consisting of line number and 
 	 * a further indicator.
 	 */
 	private Node addNode(ParserRuleContext node, String text) {
-		return this.graph.addNode(node.getStart().getLine() + ": " + text);
+		return this.graph.addNode(graph.size() + "");
 	}
 
 	/** Main method to build and print the CFG of a simple Java program. */
