@@ -6,18 +6,32 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import pp.block4.cc.ErrorListener;
+import pp.block4.cc.iloc.CalcParser.MinusContext;
+import pp.block4.cc.iloc.CalcParser.NumberContext;
+import pp.block4.cc.iloc.CalcParser.ParContext;
+import pp.block4.cc.iloc.CalcParser.PlusContext;
+import pp.block4.cc.iloc.CalcParser.TimesContext;
 import pp.iloc.Simulator;
+import pp.iloc.model.Num;
 import pp.iloc.model.Op;
 import pp.iloc.model.OpCode;
 import pp.iloc.model.Operand;
 import pp.iloc.model.Program;
+import pp.iloc.model.Reg;
+import pp.iloc.model.Str;
 
 public class CalcCompiler extends CalcBaseListener {
 	/** Program under construction. */
 	private Program prog;
 	// Attribute maps and other fields
+	
+	int numRegs = 0;
+	
+	private ParseTreeProperty<Reg> reg = new ParseTreeProperty();
 
 	/** Compiles a given expression string into an ILOC program. */
 	public Program compile(String text) {
@@ -45,13 +59,60 @@ public class CalcCompiler extends CalcBaseListener {
 
 	/** Compiles a given Calc-parse tree into an ILOC program. */
 	public Program compile(ParseTree tree) {
-		// Fill in
+	    numRegs = 0;
+	    prog = new Program();
+		new ParseTreeWalker().walk(this, tree);
+		emit(OpCode.out, new Str(""), reg.get(tree));
+		return prog;
 	}
+	
+	@Override
+    public void exitPar(ParContext ctx) {
+        Reg r = makeReg();
+        reg.put(ctx, r);
+        emit(OpCode.i2i, reg.get(ctx.expr()), r);
+    }
 
-	/** Constructs an operation from the parameters 
+    @Override
+    public void exitMinus(MinusContext ctx) {
+        Reg r = makeReg();
+        reg.put(ctx, r);
+        Reg m = makeReg();
+        emit(OpCode.loadI, new Num(-1), m);
+        emit(OpCode.mult, reg.get(ctx.expr()), m, r);
+    }
+
+    @Override
+    public void exitNumber(NumberContext ctx) {
+        Reg r = makeReg();
+        reg.put(ctx, r);
+        emit(OpCode.loadI, new Num(Integer.parseInt(ctx.getText())), r);
+    }
+
+    @Override
+    public void exitTimes(TimesContext ctx) {
+        Reg r = makeReg();
+        reg.put(ctx, r);
+        emit(OpCode.mult, reg.get(ctx.expr(0)), reg.get(ctx.expr(1)), r);
+    }
+
+    @Override
+    public void exitPlus(PlusContext ctx) {
+        Reg r = makeReg();
+        reg.put(ctx, r);
+        emit(OpCode.add, reg.get(ctx.expr(0)), reg.get(ctx.expr(1)), r);
+    }
+
+    /** Constructs an operation from the parameters 
 	 * and adds it to the program under construction. */
 	private void emit(OpCode opCode, Operand... args) {
 		this.prog.addInstr(new Op(opCode, args));
+	}
+	
+	private Reg makeReg() {
+	    Reg r = new Reg("r_" + numRegs);
+	    numRegs++;
+	    return r;
 	}
 
 	public static void main(String[] args) {
