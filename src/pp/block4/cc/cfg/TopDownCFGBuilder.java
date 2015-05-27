@@ -114,6 +114,8 @@ public class TopDownCFGBuilder extends FragmentBaseListener {
         
         tExit.addEdge(ourExit);
         fExit.addEdge(ourExit);
+        
+        //TODO: in een (terminaal) statement entry aan exit meteen doorlinken.
     }
 
     @Override
