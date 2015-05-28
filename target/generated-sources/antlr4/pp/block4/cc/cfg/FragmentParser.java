@@ -66,12 +66,9 @@ public class FragmentParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_program; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterProgram(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitProgram(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitProgram(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -135,12 +132,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode RPAR() { return getToken(FragmentParser.RPAR, 0); }
 		public IfStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterIfStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitIfStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitIfStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class BlockStatContext extends StatContext {
@@ -154,12 +148,9 @@ public class FragmentParser extends Parser {
 		}
 		public BlockStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterBlockStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitBlockStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitBlockStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ContStatContext extends StatContext {
@@ -167,12 +158,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode SEMI() { return getToken(FragmentParser.SEMI, 0); }
 		public ContStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterContStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitContStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitContStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class DeclContext extends StatContext {
@@ -187,12 +175,9 @@ public class FragmentParser extends Parser {
 		}
 		public DeclContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterDecl(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitDecl(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitDecl(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class PrintStatContext extends StatContext {
@@ -211,12 +196,9 @@ public class FragmentParser extends Parser {
 		}
 		public PrintStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterPrintStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitPrintStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitPrintStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class AssignStatContext extends StatContext {
@@ -230,12 +212,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode SEMI() { return getToken(FragmentParser.SEMI, 0); }
 		public AssignStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterAssignStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitAssignStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitAssignStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class BreakStatContext extends StatContext {
@@ -243,12 +222,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode SEMI() { return getToken(FragmentParser.SEMI, 0); }
 		public BreakStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterBreakStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitBreakStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitBreakStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class WhileStatContext extends StatContext {
@@ -263,12 +239,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode WHILE() { return getToken(FragmentParser.WHILE, 0); }
 		public WhileStatContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterWhileStat(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitWhileStat(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitWhileStat(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -424,12 +397,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode ID() { return getToken(FragmentParser.ID, 0); }
 		public IdTargetContext(TargetContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterIdTarget(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitIdTarget(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitIdTarget(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ArrayTargetContext extends TargetContext {
@@ -441,12 +411,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode LSQ() { return getToken(FragmentParser.LSQ, 0); }
 		public ArrayTargetContext(TargetContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterArrayTarget(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitArrayTarget(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitArrayTarget(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -506,12 +473,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode LSQ() { return getToken(FragmentParser.LSQ, 0); }
 		public ArrayExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterArrayExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitArrayExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitArrayExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class InExprContext extends ExprContext {
@@ -520,12 +484,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode IN() { return getToken(FragmentParser.IN, 0); }
 		public InExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterInExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitInExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitInExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class OrExprContext extends ExprContext {
@@ -538,12 +499,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode OR() { return getToken(FragmentParser.OR, 0); }
 		public OrExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterOrExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitOrExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitOrExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class FieldExprContext extends ExprContext {
@@ -554,12 +512,9 @@ public class FragmentParser extends Parser {
 		}
 		public FieldExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterFieldExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitFieldExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitFieldExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ParExprContext extends ExprContext {
@@ -570,12 +525,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode RPAR() { return getToken(FragmentParser.RPAR, 0); }
 		public ParExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterParExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitParExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitParExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class BitOrExprContext extends ExprContext {
@@ -588,12 +540,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode BIT_OR() { return getToken(FragmentParser.BIT_OR, 0); }
 		public BitOrExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterBitOrExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitBitOrExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitBitOrExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class NotExprContext extends ExprContext {
@@ -603,12 +552,9 @@ public class FragmentParser extends Parser {
 		}
 		public NotExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterNotExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitNotExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitNotExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class AddExprContext extends ExprContext {
@@ -622,12 +568,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode MINUS() { return getToken(FragmentParser.MINUS, 0); }
 		public AddExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterAddExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitAddExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitAddExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class CompExprContext extends ExprContext {
@@ -643,12 +586,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode NE() { return getToken(FragmentParser.NE, 0); }
 		public CompExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterCompExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitCompExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitCompExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class BitAndExprContext extends ExprContext {
@@ -661,12 +601,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode BIT_AND() { return getToken(FragmentParser.BIT_AND, 0); }
 		public BitAndExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterBitAndExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitBitAndExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitBitAndExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class ConstExprContext extends ExprContext {
@@ -675,24 +612,18 @@ public class FragmentParser extends Parser {
 		public TerminalNode TRUE() { return getToken(FragmentParser.TRUE, 0); }
 		public ConstExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterConstExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitConstExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitConstExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class IdExprContext extends ExprContext {
 		public TerminalNode ID() { return getToken(FragmentParser.ID, 0); }
 		public IdExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterIdExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitIdExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitIdExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 	public static class AndExprContext extends ExprContext {
@@ -705,12 +636,9 @@ public class FragmentParser extends Parser {
 		public TerminalNode AND() { return getToken(FragmentParser.AND, 0); }
 		public AndExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterAndExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitAndExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitAndExpr(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -914,12 +842,9 @@ public class FragmentParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_type; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).enterType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof FragmentListener ) ((FragmentListener)listener).exitType(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof FragmentVisitor ) return ((FragmentVisitor<? extends T>)visitor).visitType(this);
+			else return visitor.visitChildren(this);
 		}
 	}
 

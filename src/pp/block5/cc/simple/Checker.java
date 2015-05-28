@@ -10,6 +10,24 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import pp.block5.cc.ParseException;
 import pp.block5.cc.pascal.SimplePascalBaseListener;
+import pp.block5.cc.pascal.SimplePascalParser.AssStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.BlockStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.BoolExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.BoolTypeContext;
+import pp.block5.cc.pascal.SimplePascalParser.CompExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.FalseExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.IdExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.IfStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.InStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.MultExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.NumExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.OutStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.ParExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.PlusExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.PrfExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.TrueExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.VarContext;
+import pp.block5.cc.pascal.SimplePascalParser.VarDeclContext;
 /** Class to type check and calculate flow entries and variable offsets. */
 public class Checker extends SimplePascalBaseListener {
 	/** Result of the latest call of {@link #check}. */
@@ -35,6 +53,9 @@ public class Checker extends SimplePascalBaseListener {
 	}
 
 	// Override the listener methods for the statement nodes
+	
+	
+	
 	@Override
 	public void exitBoolExpr(BoolExprContext ctx) {
 		checkType(ctx.expr(0), Type.BOOL);
@@ -44,6 +65,45 @@ public class Checker extends SimplePascalBaseListener {
 	}
 
 	@Override
+    public void exitAssStat(AssStatContext ctx) {
+	    Type typeL = result.getType(ctx.target());
+	    checkType(ctx.expr(), typeL);
+	    setType(ctx, typeL);
+	    setEntry(ctx, ctx); //TODO this correct?
+    }
+
+    @Override
+    public void exitBlockStat(BlockStatContext ctx) {
+        setEntry(ctx, ctx);
+    }
+
+    @Override
+    public void exitOutStat(OutStatContext ctx) {
+        setEntry(ctx, ctx);
+    }
+
+    @Override
+    public void exitIfStat(IfStatContext ctx) {
+        checkType(ctx.expr(), Type.BOOL);
+        
+        
+        
+        super.exitIfStat(ctx);
+    }
+
+    @Override
+    public void exitInStat(InStatContext ctx) {
+        // TODO Auto-generated method stub
+        super.exitInStat(ctx);
+    }
+
+    @Override
+    public void exitVarDecl(VarDeclContext ctx) {
+        // TODO Auto-generated method stub
+        super.exitVarDecl(ctx);
+    }
+
+    @Override
 	public void exitBoolType(BoolTypeContext ctx) {
 		setType(ctx, Type.BOOL);
 	}

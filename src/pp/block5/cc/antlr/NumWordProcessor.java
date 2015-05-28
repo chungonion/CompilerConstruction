@@ -9,6 +9,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pp.block5.cc.ErrorListener;
 import pp.block5.cc.ParseException;
+import pp.block5.cc.antlr.NumWordParser.NumberContext;
+import pp.block5.cc.antlr.NumWordParser.SentenceContext;
+import pp.block5.cc.antlr.NumWordParser.WordContext;
 
 /** Prettyprints a (number, word)-sentence and sums up the numbers. */
 public class NumWordProcessor extends NumWordBaseVisitor<Integer> {
@@ -53,6 +56,40 @@ public class NumWordProcessor extends NumWordBaseVisitor<Integer> {
 		return visit(tree);
 	}
 
+    @Override
+    public Integer visitSentence(SentenceContext ctx) {
+        int sum = 0;
+        
+        for (int i = 0; i < ctx.number().size(); i++) {
+            sum += visit(ctx.number(i));
+            System.out.print(" ");
+            visit(ctx.word(i));
+            if (i < ctx.number().size()-2) {
+                System.out.print(", ");
+            } else if (i == ctx.number().size()-2) {
+                System.out.print(" and ");
+            }
+        }
+        System.out.println(".");
+        return sum;
+    }
+
+    @Override
+    public Integer visitNumber(NumberContext ctx) {
+        String text = ctx.getText();
+        System.out.print(ctx.getText());
+        return Integer.parseInt(text);
+    }
+
+    @Override
+    public Integer visitWord(WordContext ctx) {
+        System.out.print(ctx.getText());
+        return 0;
+    }
+    
+    
+
+	
 	// Override the visitor methods.
 	// Each visitor method should call visit(child)
 	// if and when it wants to visit that child node.
