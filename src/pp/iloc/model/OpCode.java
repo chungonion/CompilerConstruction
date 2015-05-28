@@ -38,13 +38,13 @@ public enum OpCode {
 	/** Subtraction (reg - num => reg). */
 	subI(2, REG, NUM, REG),
 	/** Subtraction (num - reg => reg). */
-	rsubI(2, NUM, REG, REG),
+	rsubI(2, REG, NUM, REG),
 	/** Multiplication (reg * num => reg). */
 	multI(2, REG, NUM, REG),
 	/** Division (reg / num => reg). */
 	divI(2, REG, NUM, REG),
 	/** Division (num / reg => reg). */
-	rdivI(2, NUM, REG, REG),
+	rdivI(2, REG, NUM, REG),
 
 	// Shifts (register + immediate)
 	/** Left-shift (reg << reg => reg). */
@@ -132,6 +132,11 @@ public enum OpCode {
 	/** Pseudo-op to record labels of a register jump. */
 	tbl(2, REG, LABEL),
 
+	// Extra ops for stack manipulation
+	/** Push the value of a register onto the stack. */
+	push(1, REG),
+	/** Pop the stack top into a register. */
+	pop(0, REG),
 	// Extra ops for simulation and debugging
 	/** Value input (str => reg). */
 	in(1, STR, REG),

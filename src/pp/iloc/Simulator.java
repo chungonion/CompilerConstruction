@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 import pp.iloc.eval.Machine;
+import pp.iloc.model.Label;
+import pp.iloc.model.Num;
 import pp.iloc.model.Op;
 import pp.iloc.model.OpClaz;
 import pp.iloc.model.OpCode;
@@ -16,6 +18,11 @@ import pp.iloc.model.Program;
  * @author Arend Rensink
  */
 public class Simulator {
+	/** Representation of <code>true</code>. */
+	public static final int TRUE = -1;
+	/** Representation of <code>false</code>. */
+	public static final int FALSE = 0;
+
 	/** The simulated program. */
 	private final Program prg;
 	/** The virtual machine on which the program is run. */
@@ -98,7 +105,7 @@ public class Simulator {
 			c.setReg(2, c.reg(0) - c.num(1));
 			break;
 		case rsubI:
-			c.setReg(2, c.num(0) - c.reg(1));
+			c.setReg(2, c.num(1) - c.reg(0));
 			break;
 		case multI:
 			c.setReg(2, c.reg(0) * c.num(1));
@@ -107,7 +114,31 @@ public class Simulator {
 			c.setReg(2, c.reg(0) / c.num(1));
 			break;
 		case rdivI:
-			c.setReg(2, c.num(0) / c.reg(1));
+			c.setReg(2, c.num(1) / c.reg(0));
+			break;
+		case lshift:
+			c.setReg(2, c.num(0) << c.reg(1));
+			break;
+		case lshiftI:
+			c.setReg(2, c.num(0) << c.num(1));
+			break;
+		case rshift:
+			c.setReg(2, c.num(0) >>> c.reg(1));
+			break;
+		case rshiftI:
+			c.setReg(2, c.num(0) >>> c.num(1));
+			break;
+		case and:
+			c.setReg(2, -1 * c.reg(0) * c.reg(1));
+			break;
+		case andI:
+			c.setReg(2, -1 * c.reg(0) * c.num(1));
+			break;
+		case or:
+			c.setReg(2, Math.max(-1, c.reg(0) + c.reg(1)));
+			break;
+		case orI:
+			c.setReg(2, Math.max(-1, c.reg(0) + c.num(1)));
 			break;
 		case loadI:
 			c.setReg(1, c.num(0));
@@ -164,6 +195,16 @@ public class Simulator {
 		case tbl:
 			// do nothing
 			break;
+		case push:
+			int sp = this.vm.getReg(Machine.SP) - 4;
+			this.vm.setReg(Machine.SP, sp);
+			this.vm.store(c.reg(0), sp);
+			break;
+		case pop:
+			sp = this.vm.getReg(Machine.SP);
+			c.setReg(0, this.vm.load(sp));
+			this.vm.setReg(Machine.SP, sp + 4);
+			break;
 		case in:
 			String message = o.str(0).getText();
 			if (this.stdIn) {
@@ -211,10 +252,10 @@ public class Simulator {
 	 * given a particular operation.
 	 */
 	private class OPContext {
-		private final Op o;
+		private final Op op;
 
 		OPContext(Op o) {
-			this.o = o;
+			this.op = o;
 		}
 
 		/** Sets a register of the processor to a given boolean value.
@@ -223,7 +264,7 @@ public class Simulator {
 		 * @param val the boolean value
 		 */
 		public void setReg(int regIx, boolean val) {
-			getVM().setReg(this.o.reg(regIx), val ? 1 : 0);
+			getVM().setReg(this.op.reg(regIx), val ? TRUE : FALSE);
 		}
 
 		/** Sets a register of the VM to a given value.
@@ -231,25 +272,51 @@ public class Simulator {
 		 * @param val the value
 		 */
 		public void setReg(int regIx, int val) {
-			getVM().setReg(this.o.reg(regIx), val);
+			getVM().setReg(this.op.reg(regIx), val);
 		}
 
 		/** Returns the value of a register of the VM.
 		 * @param regIx operand index of the register to be returned
 		 */
 		public int reg(int regIx) {
-			return getVM().getReg(this.o.reg(regIx));
+			return getVM().getReg(this.op.reg(regIx));
 		}
 
 		/** Returns the value assigned to a numeric constant.
-		 * @param regIx operand index of the num to be returned
+		 * @param numIx operand index of the num to be returned
 		 */
-		public int num(int regIx) {
-			return getVM().getNum(this.o.num(regIx));
+		public int num(int numIx) {
+			Num num = this.op.num(numIx);
+			switch (num.getKind()) {
+			case LAB:
+				Label label = num.getLabel();
+				int line = getProgram().getLine(label);
+				if (line < 0) {
+					System.err.println("Label '" + label
+							+ "' does not occur in program");
+				}
+				return line;
+			case LIT:
+				return num.getValue();
+			case SYMB:
+				Integer result = getVM().getNum(num);
+				if (result == null) {
+					result = getProgram().getSymb(num);
+					if (result == null) {
+						System.err.println("Symbolic constant '"
+								+ num.getName()
+								+ "' not initialised in VM or program");
+					}
+				}
+				return result;
+			default:
+				assert false;
+				return 0;
+			}
 		}
 
 		public int label(int ix) {
-			return getProgram().getLine(this.o.label(ix));
+			return getProgram().getLine(this.op.label(ix));
 		}
 
 		/** Loads a value from memory at an address
