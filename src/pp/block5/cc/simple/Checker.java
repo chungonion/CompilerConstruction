@@ -44,8 +44,6 @@ public class Checker extends SimplePascalBaseListener {
 	/** List of errors collected in the latest call of {@link #check}. */
 	private List<String> errors;
 	
-	private int numVars;
-
 	/** Runs this checker on a given parse tree,
 	 * and returns the checker result.
 	 * @throws ParseException if an error was found during checking.
@@ -54,7 +52,6 @@ public class Checker extends SimplePascalBaseListener {
 		this.scope = new Scope();
 		this.result = new Result();
 		this.errors = new ArrayList<>();
-		this.numVars = 0;
 		
 		new ParseTreeWalker().walk(this, tree);
 		if (hasErrors()) {
@@ -108,8 +105,7 @@ public class Checker extends SimplePascalBaseListener {
         setType(ctx, scope.type(ctx.ID().getText()));
         setEntry(ctx, ctx);
         
-        result.setOffset(ctx, numVars);
-        numVars++;
+        result.setOffset(ctx, scope.offset(ctx.ID().getText()));
     }
 
     @Override
@@ -179,7 +175,7 @@ public class Checker extends SimplePascalBaseListener {
 			addError(ctx, "Variable '%s' not declared", id);
 		} else {
 			setType(ctx, type);
-			setOffset(ctx, this.scope.offset(id));
+			setOffset(ctx, scope.offset(id));
 			setEntry(ctx, ctx);
 		}
 	}

@@ -1,5 +1,7 @@
 package pp.iloc;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -12,6 +14,7 @@ import pp.iloc.model.Op;
 import pp.iloc.model.OpClaz;
 import pp.iloc.model.OpCode;
 import pp.iloc.model.Program;
+import pp.iloc.parse.FormatException;
 
 /**
  * ILOC program simulator
@@ -22,6 +25,21 @@ public class Simulator {
 	public static final int TRUE = -1;
 	/** Representation of <code>false</code>. */
 	public static final int FALSE = 0;
+	/** Flag controlling debug mode. */
+	public static boolean DEBUG = false;
+
+	static public void main(String[] args) {
+		if (args.length == 0) {
+			System.err.println("Usage: filename.iloc");
+			return;
+		}
+		try {
+			Program prog = Assembler.instance().assemble(new File(args[0]));
+			new Simulator(prog).run();
+		} catch (FormatException | IOException exc) {
+			exc.printStackTrace();
+		}
+	}
 
 	/** The simulated program. */
 	private final Program prg;
@@ -82,6 +100,11 @@ public class Simulator {
 	public void step() {
 		Op o = this.prg.getOpAt(this.vm.getPC());
 		OPContext c = new OPContext(o);
+		Machine vm = this.vm;
+		if (DEBUG) {
+			System.out.printf("Op %d: %s%n", vm.getPC(), o);
+			System.out.println(vm);
+		}
 		switch (o.getOpCode()) {
 		case nop:
 			// do nothing
@@ -140,26 +163,62 @@ public class Simulator {
 		case orI:
 			c.setReg(2, Math.max(-1, c.reg(0) + c.num(1)));
 			break;
+		case xor:
+			c.setReg(2, Math.max(-1, c.reg(0) ^ c.reg(1)));
+			break;
+		case xorI:
+			c.setReg(2, Math.max(-1, c.reg(0) ^ c.num(1)));
+			break;
+		case load:
+			c.setReg(1, vm.load(c.reg(0)));
+			break;
 		case loadI:
 			c.setReg(1, c.num(0));
 			break;
 		case loadAI:
-			c.setReg(2, c.loadAI(0, 1));
+			c.setReg(2, vm.load(c.reg(0) + c.num(1)));
 			break;
 		case loadAO:
-			c.setReg(2, c.loadAO(0, 1));
+			c.setReg(2, vm.load(c.reg(0) + c.reg(1)));
 			break;
 		case store:
-			c.store(c.reg(0), 1);
+			vm.store(c.reg(0), c.reg(1));
 			break;
 		case storeAI:
-			c.storeAI(c.reg(0), 1, 2);
+			vm.store(c.reg(0), c.reg(1) + c.num(2));
 			break;
 		case storeAO:
-			c.storeAO(c.reg(0), 1, 2);
+			vm.store(c.reg(0), c.reg(1) + c.reg(2));
+			break;
+		case cload:
+			c.setReg(1, vm.loadC(c.reg(0)));
+			break;
+		case cloadAI:
+			c.setReg(2, vm.loadC(c.reg(0) + c.num(1)));
+			break;
+		case cloadAO:
+			c.setReg(2, vm.loadC(c.reg(0) + c.reg(1)));
+			break;
+		case cstore:
+			vm.storeC(c.reg(0), c.reg(1));
+			break;
+		case cstoreAI:
+			vm.storeC(c.reg(0), c.reg(1) + c.num(2));
+			break;
+		case cstoreAO:
+			vm.storeC(c.reg(0), c.reg(1) + c.reg(2));
 			break;
 		case i2i:
 			c.setReg(1, c.reg(0));
+			break;
+		case i2c:
+			c.setReg(1, (byte) c.reg(0));
+			break;
+		case c2i:
+			c.setReg(1, (byte) c.reg(0));
+			break;
+		case c2c:
+			c.setReg(1, (byte) c.reg(0));
 			break;
 		case cmp_LT:
 			c.setReg(2, c.reg(0) < c.reg(1));
@@ -259,15 +318,15 @@ public class Simulator {
 		}
 
 		/** Sets a register of the processor to a given boolean value.
-		 * The boolean is converted to 1 (<code>true</code>) or 0 (<code>false</code>).
-		 * @param regIx operandindex of the register to be set
+		 * The boolean is converted to {@link #TRUE} of {@link #FALSE}.
+		 * @param regIx operand index of the register to be set
 		 * @param val the boolean value
 		 */
 		public void setReg(int regIx, boolean val) {
 			getVM().setReg(this.op.reg(regIx), val ? TRUE : FALSE);
 		}
 
-		/** Sets a register of the VM to a given value.
+		/** Sets a register of the VM to a given integer value.
 		 * @param regIx operand index of the register to be set
 		 * @param val the value
 		 */
@@ -315,39 +374,9 @@ public class Simulator {
 			}
 		}
 
+		/** Returns the instruction number associated with a given label. */
 		public int label(int ix) {
 			return getProgram().getLine(this.op.label(ix));
-		}
-
-		/** Loads a value from memory at an address
-		 * determined by a base (in a register) and an offset (as a num)
-		 * @param baseIx operand index of the base register name
-		 * @param offsetIx operand index of the numeric value
-		 */
-		public int loadAI(int baseIx, int offsetIx) {
-			return getVM().load(reg(baseIx) + num(offsetIx));
-		}
-
-		public int loadAO(int baseIx, int offsetIx) {
-			return getVM().load(reg(baseIx) + reg(offsetIx));
-		}
-
-		public void store(int val, int addrIx) {
-			getVM().store(val, reg(addrIx));
-		}
-
-		/** Stores a value in memory at an address
-		 * determined by a base (in a register) and an offset (as a num)
-		 * @param val the value to be stored
-		 * @param baseIx operand index of the base register name
-		 * @param offsetIx operand index of the numeric value
-		 */
-		public void storeAI(int val, int baseIx, int offsetIx) {
-			getVM().store(val, reg(baseIx) + num(offsetIx));
-		}
-
-		public void storeAO(int val, int baseIx, int offsetIx) {
-			getVM().store(val, reg(baseIx) + reg(offsetIx));
 		}
 	}
 }

@@ -54,7 +54,7 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 	@Override
     public Op visitAssStat(AssStatContext ctx) {
         visit(ctx.expr());
-        return emit(OpCode.store, reg(ctx.expr()), reg(ctx.target()));
+        return emit(OpCode.storeAI, reg(ctx.expr()), arp, offset(ctx.target()));
     }
 
     @Override
@@ -69,8 +69,9 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
     }
     @Override
     public Op visitOutStat(OutStatContext ctx) {
+        String text = ctx.STR().getText();
         visit(ctx.expr());
-        return emit(OpCode.out, new Str(ctx.STR().getText()), reg(ctx.expr()));
+        return emit(OpCode.out, new Str(text.substring(1, text.length() - 1)), reg(ctx.expr()));
     }
 
     @Override
@@ -140,6 +141,8 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
         
         visit(ctx.stat());
         
+        emit(OpCode.jumpI, condLbl);
+        
         emit(endLbl, OpCode.nop);
         
         return null;
@@ -147,12 +150,11 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 
     @Override
     public Op visitIfStat(IfStatContext ctx) {
-        Label condLbl = createLabel(ctx, "cond");
         Label tb = createLabel(ctx, "tb");
         Label fb = createLabel(ctx, "fb");
-        
-        emit(condLbl, OpCode.nop);
-        
+        Label end = createLabel(ctx, "end");
+
+                
         visit(ctx.expr());
         
         emit(OpCode.cbr, reg(ctx.expr()), tb, fb);
@@ -161,18 +163,22 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
         
         visit(ctx.stat(0));
         
+        emit(OpCode.jumpI, end);
+        
         emit(fb, OpCode.nop);
 
         if (ctx.stat().size() > 1) {
             visit(ctx.stat(1));
         }
         
+        emit(end, OpCode.nop);
+        
         return null;
     }
 
     @Override
     public Op visitIdTarget(IdTargetContext ctx) {
-        return emit(OpCode.loadI, offset(ctx), reg(ctx));
+        return emit(OpCode.loadAI, arp, offset(ctx), reg(ctx));
     }
 
 
@@ -222,9 +228,9 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
         visit(ctx.expr());
         
         if (ctx.prfOp().MINUS() != null) {
-            return emit(OpCode.multI, reg(ctx.expr()), new Num(-1));
+            return emit(OpCode.multI, reg(ctx.expr()), new Num(-1), reg(ctx));
         } else if (ctx.prfOp().NOT() != null) {
-            return emit(OpCode.xorI, reg(ctx.expr()), new Num(-1));
+            return emit(OpCode.xorI, reg(ctx.expr()), new Num(-1), reg(ctx));
         } else {
             throw new RuntimeException("Unknown prefix op");    
         }
@@ -232,8 +238,12 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
     
     @Override
     public Op visitInStat(InStatContext ctx) {
+        String text = ctx.STR().getText();
         visit(ctx.target());
-        return emit(OpCode.in, new Str(ctx.STR().getText()), reg(ctx.target()));
+        
+        emit(OpCode.in, new Str(text.substring(1, text.length() - 1)), reg(ctx));
+        
+        return emit(OpCode.storeAI, reg(ctx), arp, offset(ctx.target()));
     }
     
     @Override
@@ -242,9 +252,9 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
         visit(ctx.expr(1));
         
         if (ctx.boolOp().AND() != null) {
-            return emit(OpCode.and, reg(ctx.expr(0)), reg(ctx.expr(1)));
+            return emit(OpCode.and, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
         } else if (ctx.boolOp().OR() != null) {
-            return emit(OpCode.or, reg(ctx.expr(0)), reg(ctx.expr(1)));
+            return emit(OpCode.or, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
         } else {
             throw new RuntimeException("Unknown boolean op");    
         }
@@ -254,7 +264,7 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
     @Override
     public Op visitIdExpr(IdExprContext ctx) {
         // ofset(ctx) misschien reg(ctx.ID())
-        return emit(OpCode.load, offset(ctx), reg(ctx));
+        return emit(OpCode.loadAI, arp, offset(ctx), reg(ctx));
     }
 
 
