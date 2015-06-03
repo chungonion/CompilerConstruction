@@ -7,16 +7,21 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pp.block5.cc.ParseException;
 import pp.block5.cc.pascal.SimplePascalBaseListener;
+import pp.block5.cc.pascal.SimplePascalLexer;
 import pp.block5.cc.pascal.SimplePascalParser.AssStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.BlockContext;
 import pp.block5.cc.pascal.SimplePascalParser.BlockStatContext;
+import pp.block5.cc.pascal.SimplePascalParser.BodyContext;
 import pp.block5.cc.pascal.SimplePascalParser.BoolExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.BoolTypeContext;
 import pp.block5.cc.pascal.SimplePascalParser.CompExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.FalseExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.IdExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.IdTargetContext;
 import pp.block5.cc.pascal.SimplePascalParser.IfStatContext;
 import pp.block5.cc.pascal.SimplePascalParser.InStatContext;
 import pp.block5.cc.pascal.SimplePascalParser.MultExprContext;
@@ -25,9 +30,11 @@ import pp.block5.cc.pascal.SimplePascalParser.OutStatContext;
 import pp.block5.cc.pascal.SimplePascalParser.ParExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.PlusExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.PrfExprContext;
+import pp.block5.cc.pascal.SimplePascalParser.ProgramContext;
 import pp.block5.cc.pascal.SimplePascalParser.TrueExprContext;
 import pp.block5.cc.pascal.SimplePascalParser.VarContext;
 import pp.block5.cc.pascal.SimplePascalParser.VarDeclContext;
+import pp.block5.cc.pascal.SimplePascalParser.WhileStatContext;
 /** Class to type check and calculate flow entries and variable offsets. */
 public class Checker extends SimplePascalBaseListener {
 	/** Result of the latest call of {@link #check}. */
@@ -36,6 +43,8 @@ public class Checker extends SimplePascalBaseListener {
 	private Scope scope;
 	/** List of errors collected in the latest call of {@link #check}. */
 	private List<String> errors;
+	
+	private int numVars;
 
 	/** Runs this checker on a given parse tree,
 	 * and returns the checker result.
@@ -45,6 +54,8 @@ public class Checker extends SimplePascalBaseListener {
 		this.scope = new Scope();
 		this.result = new Result();
 		this.errors = new ArrayList<>();
+		this.numVars = 0;
+		
 		new ParseTreeWalker().walk(this, tree);
 		if (hasErrors()) {
 			throw new ParseException(getErrors());
@@ -65,16 +76,45 @@ public class Checker extends SimplePascalBaseListener {
 	}
 
 	@Override
+    public void exitProgram(ProgramContext ctx) {
+	    setEntry(ctx, entry(ctx.body()));
+    }
+
+    @Override
+    public void exitBlock(BlockContext ctx) {
+        setEntry(ctx, entry(ctx.stat(0)));
+    }
+
+    @Override
+    public void exitWhileStat(WhileStatContext ctx) {
+        setEntry(ctx, entry(ctx.stat()));
+    }
+
+    @Override
     public void exitAssStat(AssStatContext ctx) {
 	    Type typeL = result.getType(ctx.target());
 	    checkType(ctx.expr(), typeL);
 	    setType(ctx, typeL);
-	    setEntry(ctx, ctx); //TODO this correct?
+	    setEntry(ctx, entry(ctx.expr())); //TODO this correct?
+    }
+
+    @Override
+    public void exitBody(BodyContext ctx) {
+        setEntry(ctx, entry(ctx.block()));
+    }
+
+    @Override
+    public void exitIdTarget(IdTargetContext ctx) {
+        setType(ctx, scope.type(ctx.ID().getText()));
+        setEntry(ctx, ctx);
+        
+        result.setOffset(ctx, numVars);
+        numVars++;
     }
 
     @Override
     public void exitBlockStat(BlockStatContext ctx) {
-        setEntry(ctx, ctx);
+        setEntry(ctx, entry(ctx.block()));
     }
 
     @Override
@@ -86,27 +126,36 @@ public class Checker extends SimplePascalBaseListener {
     public void exitIfStat(IfStatContext ctx) {
         checkType(ctx.expr(), Type.BOOL);
         
-        
-        
-        super.exitIfStat(ctx);
+        setEntry(ctx, entry(ctx.expr()));
     }
 
     @Override
     public void exitInStat(InStatContext ctx) {
-        // TODO Auto-generated method stub
-        super.exitInStat(ctx);
+        setEntry(ctx, ctx);
     }
 
     @Override
     public void exitVarDecl(VarDeclContext ctx) {
-        // TODO Auto-generated method stub
-        super.exitVarDecl(ctx);
+        for (VarContext var : ctx.var()) {
+            for (TerminalNode node : var.ID()) {
+                String id = node.getText();
+                
+                
+                switch (var.type().start.getType()) {
+                case SimplePascalLexer.INTEGER:
+                    scope.put(id, Type.INT);
+                    break;
+                case SimplePascalLexer.BOOLEAN:
+                    scope.put(id, Type.BOOL);
+                    break;
+                default:
+                    throw new RuntimeException("Unknown type " + var.type());
+                }                
+            }
+        }
+        
+        setEntry(ctx, ctx);
     }
-
-    @Override
-	public void exitBoolType(BoolTypeContext ctx) {
-		setType(ctx, Type.BOOL);
-	}
 
 	@Override
 	public void exitCompExpr(CompExprContext ctx) {
