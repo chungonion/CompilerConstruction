@@ -91,7 +91,8 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 
     @Override
     public Op visitParExpr(ParExprContext ctx) {
-        return visit(ctx.expr());
+        visit(ctx.expr());
+        return emit(OpCode.i2i, reg(ctx.expr()),reg(ctx));
     }
     
     @Override
@@ -202,7 +203,7 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 
     @Override
     public Op visitNumExpr(NumExprContext ctx) {
-        return emit(OpCode.loadI, new Num(ctx.toString()), reg(ctx));
+        return emit(OpCode.loadI, new Num(Integer.parseInt(ctx.getText())), reg(ctx));
     }
 
     @Override

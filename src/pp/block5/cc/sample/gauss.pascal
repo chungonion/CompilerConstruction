@@ -9,7 +9,7 @@ Begin
     While i<limit Do
     Begin
         i := i + 1;
-        sum := sum + i;
+        sum := sum + i
     End;
-    Out("Sum: ", sum);
+    Out("Sum: ", sum)
  End.

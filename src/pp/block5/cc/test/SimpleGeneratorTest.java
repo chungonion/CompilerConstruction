@@ -39,6 +39,18 @@ public class SimpleGeneratorTest {
 		out = sim(prog, "367");
 		assertEquals("Is prime 0", out.trim());
 	}
+	
+	@Test
+    public void testBasic() throws IOException, ParseException {
+        Program prog = compile("basic");
+    }
+	
+	@Test
+    public void testGauss() throws IOException, ParseException {
+        Program prog = compile("gauss");
+        String out = sim(prog, "10");
+        assertEquals("Sum: 55", out.trim());
+    }
 
 	private Program compile(String filename) throws IOException, ParseException {
 		return this.compiler.compile(new File(BASE_DIR, filename + EXT));
