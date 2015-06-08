@@ -1,21 +1,46 @@
 package pp.iloc;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
 
 import pp.iloc.eval.Machine;
+import pp.iloc.model.Label;
+import pp.iloc.model.Num;
 import pp.iloc.model.Op;
 import pp.iloc.model.OpClaz;
 import pp.iloc.model.OpCode;
 import pp.iloc.model.Program;
+import pp.iloc.parse.FormatException;
 
 /**
  * ILOC program simulator
  * @author Arend Rensink
  */
 public class Simulator {
+	/** Representation of <code>true</code>. */
+	public static final int TRUE = -1;
+	/** Representation of <code>false</code>. */
+	public static final int FALSE = 0;
+	/** Flag controlling debug mode. */
+	public static boolean DEBUG = false;
+
+	static public void main(String[] args) {
+		if (args.length == 0) {
+			System.err.println("Usage: filename.iloc");
+			return;
+		}
+		try {
+			Program prog = Assembler.instance().assemble(new File(args[0]));
+			new Simulator(prog).run();
+		} catch (FormatException | IOException exc) {
+			exc.printStackTrace();
+		}
+	}
+
 	/** The simulated program. */
 	private final Program prg;
 	/** The virtual machine on which the program is run. */
@@ -75,6 +100,11 @@ public class Simulator {
 	public void step() {
 		Op o = this.prg.getOpAt(this.vm.getPC());
 		OPContext c = new OPContext(o);
+		Machine vm = this.vm;
+		if (DEBUG) {
+			System.out.printf("Op %d: %s%n", vm.getPC(), o);
+			System.out.println(vm);
+		}
 		switch (o.getOpCode()) {
 		case nop:
 			// do nothing
@@ -98,7 +128,7 @@ public class Simulator {
 			c.setReg(2, c.reg(0) - c.num(1));
 			break;
 		case rsubI:
-			c.setReg(2, c.num(0) - c.reg(1));
+			c.setReg(2, c.num(1) - c.reg(0));
 			break;
 		case multI:
 			c.setReg(2, c.reg(0) * c.num(1));
@@ -107,28 +137,88 @@ public class Simulator {
 			c.setReg(2, c.reg(0) / c.num(1));
 			break;
 		case rdivI:
-			c.setReg(2, c.num(0) / c.reg(1));
+			c.setReg(2, c.num(1) / c.reg(0));
+			break;
+		case lshift:
+			c.setReg(2, c.num(0) << c.reg(1));
+			break;
+		case lshiftI:
+			c.setReg(2, c.num(0) << c.num(1));
+			break;
+		case rshift:
+			c.setReg(2, c.num(0) >>> c.reg(1));
+			break;
+		case rshiftI:
+			c.setReg(2, c.num(0) >>> c.num(1));
+			break;
+		case and:
+			c.setReg(2, -1 * c.reg(0) * c.reg(1));
+			break;
+		case andI:
+			c.setReg(2, -1 * c.reg(0) * c.num(1));
+			break;
+		case or:
+			c.setReg(2, Math.max(-1, c.reg(0) + c.reg(1)));
+			break;
+		case orI:
+			c.setReg(2, Math.max(-1, c.reg(0) + c.num(1)));
+			break;
+		case xor:
+			c.setReg(2, Math.max(-1, c.reg(0) ^ c.reg(1)));
+			break;
+		case xorI:
+			c.setReg(2, Math.max(-1, c.reg(0) ^ c.num(1)));
+			break;
+		case load:
+			c.setReg(1, vm.load(c.reg(0)));
 			break;
 		case loadI:
 			c.setReg(1, c.num(0));
 			break;
 		case loadAI:
-			c.setReg(2, c.loadAI(0, 1));
+			c.setReg(2, vm.load(c.reg(0) + c.num(1)));
 			break;
 		case loadAO:
-			c.setReg(2, c.loadAO(0, 1));
+			c.setReg(2, vm.load(c.reg(0) + c.reg(1)));
 			break;
 		case store:
-			c.store(c.reg(0), 1);
+			vm.store(c.reg(0), c.reg(1));
 			break;
 		case storeAI:
-			c.storeAI(c.reg(0), 1, 2);
+			vm.store(c.reg(0), c.reg(1) + c.num(2));
 			break;
 		case storeAO:
-			c.storeAO(c.reg(0), 1, 2);
+			vm.store(c.reg(0), c.reg(1) + c.reg(2));
+			break;
+		case cload:
+			c.setReg(1, vm.loadC(c.reg(0)));
+			break;
+		case cloadAI:
+			c.setReg(2, vm.loadC(c.reg(0) + c.num(1)));
+			break;
+		case cloadAO:
+			c.setReg(2, vm.loadC(c.reg(0) + c.reg(1)));
+			break;
+		case cstore:
+			vm.storeC(c.reg(0), c.reg(1));
+			break;
+		case cstoreAI:
+			vm.storeC(c.reg(0), c.reg(1) + c.num(2));
+			break;
+		case cstoreAO:
+			vm.storeC(c.reg(0), c.reg(1) + c.reg(2));
 			break;
 		case i2i:
 			c.setReg(1, c.reg(0));
+			break;
+		case i2c:
+			c.setReg(1, (byte) c.reg(0));
+			break;
+		case c2i:
+			c.setReg(1, (byte) c.reg(0));
+			break;
+		case c2c:
+			c.setReg(1, (byte) c.reg(0));
 			break;
 		case cmp_LT:
 			c.setReg(2, c.reg(0) < c.reg(1));
@@ -163,6 +253,16 @@ public class Simulator {
 			break;
 		case tbl:
 			// do nothing
+			break;
+		case push:
+			int sp = this.vm.getReg(Machine.SP) - 4;
+			this.vm.setReg(Machine.SP, sp);
+			this.vm.store(c.reg(0), sp);
+			break;
+		case pop:
+			sp = this.vm.getReg(Machine.SP);
+			c.setReg(0, this.vm.load(sp));
+			this.vm.setReg(Machine.SP, sp + 4);
 			break;
 		case in:
 			String message = o.str(0).getText();
@@ -211,76 +311,72 @@ public class Simulator {
 	 * given a particular operation.
 	 */
 	private class OPContext {
-		private final Op o;
+		private final Op op;
 
 		OPContext(Op o) {
-			this.o = o;
+			this.op = o;
 		}
 
 		/** Sets a register of the processor to a given boolean value.
-		 * The boolean is converted to 1 (<code>true</code>) or 0 (<code>false</code>).
-		 * @param regIx operandindex of the register to be set
+		 * The boolean is converted to {@link #TRUE} of {@link #FALSE}.
+		 * @param regIx operand index of the register to be set
 		 * @param val the boolean value
 		 */
 		public void setReg(int regIx, boolean val) {
-			getVM().setReg(this.o.reg(regIx), val ? 1 : 0);
+			getVM().setReg(this.op.reg(regIx), val ? TRUE : FALSE);
 		}
 
-		/** Sets a register of the VM to a given value.
+		/** Sets a register of the VM to a given integer value.
 		 * @param regIx operand index of the register to be set
 		 * @param val the value
 		 */
 		public void setReg(int regIx, int val) {
-			getVM().setReg(this.o.reg(regIx), val);
+			getVM().setReg(this.op.reg(regIx), val);
 		}
 
 		/** Returns the value of a register of the VM.
 		 * @param regIx operand index of the register to be returned
 		 */
 		public int reg(int regIx) {
-			return getVM().getReg(this.o.reg(regIx));
+			return getVM().getReg(this.op.reg(regIx));
 		}
 
 		/** Returns the value assigned to a numeric constant.
-		 * @param regIx operand index of the num to be returned
+		 * @param numIx operand index of the num to be returned
 		 */
-		public int num(int regIx) {
-			return getVM().getNum(this.o.num(regIx));
+		public int num(int numIx) {
+			Num num = this.op.num(numIx);
+			switch (num.getKind()) {
+			case LAB:
+				Label label = num.getLabel();
+				int line = getProgram().getLine(label);
+				if (line < 0) {
+					System.err.println("Label '" + label
+							+ "' does not occur in program");
+				}
+				return line;
+			case LIT:
+				return num.getValue();
+			case SYMB:
+				Integer result = getVM().getNum(num);
+				if (result == null) {
+					result = getProgram().getSymb(num);
+					if (result == null) {
+						System.err.println("Symbolic constant '"
+								+ num.getName()
+								+ "' not initialised in VM or program");
+					}
+				}
+				return result;
+			default:
+				assert false;
+				return 0;
+			}
 		}
 
+		/** Returns the instruction number associated with a given label. */
 		public int label(int ix) {
-			return getProgram().getLine(this.o.label(ix));
-		}
-
-		/** Loads a value from memory at an address
-		 * determined by a base (in a register) and an offset (as a num)
-		 * @param baseIx operand index of the base register name
-		 * @param offsetIx operand index of the numeric value
-		 */
-		public int loadAI(int baseIx, int offsetIx) {
-			return getVM().load(reg(baseIx) + num(offsetIx));
-		}
-
-		public int loadAO(int baseIx, int offsetIx) {
-			return getVM().load(reg(baseIx) + reg(offsetIx));
-		}
-
-		public void store(int val, int addrIx) {
-			getVM().store(val, reg(addrIx));
-		}
-
-		/** Stores a value in memory at an address
-		 * determined by a base (in a register) and an offset (as a num)
-		 * @param val the value to be stored
-		 * @param baseIx operand index of the base register name
-		 * @param offsetIx operand index of the numeric value
-		 */
-		public void storeAI(int val, int baseIx, int offsetIx) {
-			getVM().store(val, reg(baseIx) + num(offsetIx));
-		}
-
-		public void storeAO(int val, int baseIx, int offsetIx) {
-			getVM().store(val, reg(baseIx) + reg(offsetIx));
+			return getProgram().getLine(this.op.label(ix));
 		}
 	}
 }

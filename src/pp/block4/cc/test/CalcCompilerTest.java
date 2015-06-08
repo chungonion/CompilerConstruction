@@ -15,6 +15,8 @@ public class CalcCompilerTest {
 	private final CalcCompiler compiler = new CalcCompiler();
 	@Test
 	public void test() {
+	    test(1, "1");
+	    test(101010, "101010");
 		test(-11, "1+-3*4");
 		test(-8, "(1+-3)*4");
 		test(11, "--1+2*3+4");

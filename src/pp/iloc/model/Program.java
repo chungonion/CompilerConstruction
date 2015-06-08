@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pp.iloc.model.Num.NumKind;
 import pp.iloc.model.Operand.Type;
 import pp.iloc.parse.FormatException;
 
@@ -17,43 +18,51 @@ import pp.iloc.parse.FormatException;
 public class Program {
 	/** Indexed list of all instructions in the program. */
 	private final List<Instr> instrList;
-
 	/**
 	 * Indexed list of all operations in the program.
 	 * This is the flattened list of instructions.
 	 */
 	private final List<Op> opList;
-
 	/** Mapping from labels defined in the program to corresponding
 	 * index locations.
 	 */
 	private final Map<Label, Integer> labelMap;
+	/** (Partial) mapping from symbolic constants used in the program
+	 * to corresponding numeric values. */
+	private final Map<Num, Integer> symbMap;
 
 	/** Creates a program with an initially empty instruction list. */
 	public Program() {
 		this.instrList = new ArrayList<>();
 		this.opList = new ArrayList<>();
 		this.labelMap = new LinkedHashMap<>();
+		this.symbMap = new LinkedHashMap<>();
 	}
 
 	/** Adds an instruction to the instruction list of this program.
 	 * @throws IllegalArgumentException if the instruction has a known label 
 	 */
 	public void addInstr(Instr instr) {
-		if (instr.hasLabel()) {
-			Label label = instr.getLabel();
-			Integer loc = this.labelMap.get(label);
-			if (loc != null) {
-				throw new IllegalArgumentException(String.format(
-						"Label %s already occurred at location %d", label, loc));
-			}
-			this.labelMap.put(label, this.opList.size());
-		}
+		instr.setProgram(this);
 		instr.setLine(this.opList.size());
+		if (instr.hasLabel()) {
+			registerLabel(instr);
+		}
 		this.instrList.add(instr);
 		for (Op op : instr) {
 			this.opList.add(op);
 		}
+	}
+
+	/** Registers the label of a given instruction. */
+	void registerLabel(Instr instr) {
+		Label label = instr.getLabel();
+		Integer loc = this.labelMap.get(label);
+		if (loc != null) {
+			throw new IllegalArgumentException(String.format(
+					"Label %s already occurred at location %d", label, loc));
+		}
+		this.labelMap.put(label, instr.getLine());
 	}
 
 	/** Returns the current list of instructions of this program. */
@@ -72,15 +81,6 @@ public class Program {
 	}
 
 	/**
-	 * Returns the location at which a label (given as a string) is defined, if any.
-	 * @return the location of an instruction with the label, or {@code -1}
-	 * if the label is undefined
-	 */
-	public int getLine(String label) {
-		return getLine(new Label(label));
-	}
-
-	/**
 	 * Returns the location at which a given label is defined, if any.
 	 * @return the location of an instruction with the label, or {@code -1}
 	 * if the label is undefined
@@ -88,6 +88,35 @@ public class Program {
 	public int getLine(Label label) {
 		Integer result = this.labelMap.get(label);
 		return result == null ? -1 : result;
+	}
+
+	/** Assigns a fixed numeric value to a symbolic constant.
+	 * It is an error to assign to the same constant twice.
+	 * @param name constant name, without preceding '@'
+	 */
+	public void setSymb(Num symb, int value) {
+		if (this.symbMap.containsKey(symb)) {
+			throw new IllegalArgumentException("Constant '" + symb
+					+ "' already assigned");
+		}
+		this.symbMap.put(symb, value);
+	}
+
+	/** 
+	 * Returns the value with which a given symbol has been
+	 * initialised, if any.
+	 */
+	public Integer getSymb(Num symb) {
+		return this.symbMap.get(symb);
+	}
+
+	/** 
+	 * Returns the value with which a given named symbol has been
+	 * initialised, if any.
+	 * @param name name of the symbol, without '@'-prefix
+	 */
+	public Integer getSymb(String name) {
+		return getSymb(new Num(name));
 	}
 
 	/**
@@ -98,7 +127,7 @@ public class Program {
 		List<String> messages = new ArrayList<>();
 		for (Instr instr : getInstr()) {
 			for (Op op : instr) {
-				messages.addAll(checkOpnds(op.getLine(), op.getOpnds()));
+				messages.addAll(checkOpnds(op.getLine(), op.getArgs()));
 			}
 		}
 		if (!messages.isEmpty()) {
@@ -123,10 +152,10 @@ public class Program {
 	 * Returns a mapping from registers to line numbers
 	 * in which they appear.
 	 */
-	public Map<String, Set<Integer>> getRegMap() {
+	public Map<String, Set<Integer>> getRegLines() {
 		Map<String, Set<Integer>> result = new LinkedHashMap<>();
 		for (Op op : this.opList) {
-			for (Operand opnd : op.getOpnds()) {
+			for (Operand opnd : op.getArgs()) {
 				if (opnd.getType() == Type.REG) {
 					Set<Integer> ops = result.get(((Reg) opnd).getName());
 					if (ops == null) {
@@ -144,18 +173,22 @@ public class Program {
 	 * Returns a mapping from (symbolic) variables to line numbers
 	 * in which they appear.
 	 */
-	public Map<String, Set<Integer>> getSymbMap() {
+	public Map<String, Set<Integer>> getSymbLines() {
 		Map<String, Set<Integer>> result = new LinkedHashMap<>();
 		for (Op op : this.opList) {
-			for (Operand opnd : op.getOpnds()) {
-				if (opnd instanceof Num && !((Num) opnd).isLit()) {
-					Set<Integer> ops = result.get(((Num) opnd).getName());
-					if (ops == null) {
-						result.put(((Num) opnd).getName(),
-								ops = new LinkedHashSet<>());
-					}
-					ops.add(op.getLine());
+			for (Operand opnd : op.getArgs()) {
+				if (!(opnd instanceof Num)) {
+					continue;
 				}
+				if (((Num) opnd).getKind() != NumKind.SYMB) {
+					continue;
+				}
+				String name = ((Num) opnd).getName();
+				Set<Integer> lines = result.get(name);
+				if (lines == null) {
+					result.put(name, lines = new LinkedHashSet<>());
+				}
+				lines.add(op.getLine());
 			}
 		}
 		return result;
@@ -165,6 +198,10 @@ public class Program {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
+		for (Map.Entry<Num, Integer> symbEntry : this.symbMap.entrySet()) {
+			result.append(String.format("%s <- %d%n", symbEntry.getKey()
+					.getName(), symbEntry.getValue()));
+		}
 		for (Instr instr : getInstr()) {
 			result.append(instr.toString());
 			result.append('\n');
@@ -196,12 +233,25 @@ public class Program {
 	 */
 	public String prettyPrint() {
 		StringBuilder result = new StringBuilder();
+		// first print the symbolic declaration map
+		int idSize = 0;
+		for (Num symb : this.symbMap.keySet()) {
+			idSize = Math.max(idSize, symb.getName().length());
+		}
+		for (Map.Entry<Num, Integer> symbEntry : this.symbMap.entrySet()) {
+			result.append(String.format("%-" + idSize + "s <- %d%n", symbEntry
+					.getKey().getName(), symbEntry.getValue()));
+		}
+		if (idSize > 0) {
+			result.append('\n');
+		}
+		// then print the instructions
 		int labelSize = 0;
 		int sourceSize = 0;
 		int targetSize = 0;
 		for (Instr i : getInstr()) {
 			labelSize = Math.max(labelSize, i.toLabelString().length());
-			if (i instanceof Op) {
+			if (i instanceof Op && ((Op) i).getOpCode() != OpCode.out) {
 				Op op = (Op) i;
 				sourceSize = Math.max(sourceSize, op.toSourceString().length());
 				targetSize = Math.max(targetSize, op.toTargetString().length());

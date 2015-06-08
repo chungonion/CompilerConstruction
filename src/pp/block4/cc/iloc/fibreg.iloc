@@ -1,0 +1,12 @@
+start:  loadI 0 => r_x
+        loadI 1 => r_y
+        loadI 1 => r_z
+        loadI 2 => r_two
+while:  cmp_GT r_n,r_two => r_cmp
+        cbr r_cmp -> body, end
+body:   add r_x,r_y => r_z
+        i2i r_y => r_x
+        i2i r_z => r_y
+        addI r_n,-1 => r_n
+        jumpI -> while
+end:    out "Result: ", r_z
