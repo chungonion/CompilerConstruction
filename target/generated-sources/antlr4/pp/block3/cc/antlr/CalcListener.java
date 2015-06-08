@@ -1,6 +1,5 @@
 // Generated from Calc.g4 by ANTLR 4.4
 package pp.block3.cc.antlr;
-package pp.block3.cc.antlr;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 

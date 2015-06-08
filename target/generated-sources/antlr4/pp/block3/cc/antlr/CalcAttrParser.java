@@ -1,6 +1,5 @@
 // Generated from CalcAttr.g4 by ANTLR 4.4
 package pp.block3.cc.antlr;
-package pp.block3.cc.antlr;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
