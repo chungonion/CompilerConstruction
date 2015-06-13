@@ -84,6 +84,8 @@ public class Checker extends SimplePascalBaseListener {
 
     @Override
     public void exitWhileStat(WhileStatContext ctx) {
+        checkType(ctx.expr(), Type.BOOL);
+        
         setEntry(ctx, entry(ctx.stat()));
     }
 
