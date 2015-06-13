@@ -1,0 +1,47 @@
+start:              loadI 0 => r_0
+                    loadI 1 => r_1
+                    
+                    in " Number ? " => r_num
+                    in " Base ? " => r_base
+                    
+                    loadI #end => r_return
+                    push r_return
+                    push r_num
+                    push r_base
+                    jumpI -> convert
+
+convert:            nop
+                    pop => r_base
+                    pop => r_num
+                    
+                    div r_num, r_base => r_rest
+                    mult r_base, r_rest => r_temp
+                    sub r_num, r_temp => r_temp
+                    out " Next digit : ", r_temp
+        
+                    cmp_EQ r_rest, r_0 => r_cmp
+                    cbr r_cmp -> convert_finish, convert_rec_1
+                    
+convert_rec_1:      nop
+                    loadI #convert_rec_2 => r_return
+                    push r_return
+                    push r_rest
+                    push r_base
+                    jumpI -> convert
+                    
+convert_rec_2:      nop
+                    pop => r_result
+                    addI r_result, 1 => r_result
+                    pop => r_return
+                    push r_result
+                    jump -> r_return
+                    
+convert_finish:     nop
+                    pop => r_return
+                    push r_1
+                    jump -> r_return
+
+end:                nop
+                    pop => r_result
+                    out " Length : ", r_result
+
