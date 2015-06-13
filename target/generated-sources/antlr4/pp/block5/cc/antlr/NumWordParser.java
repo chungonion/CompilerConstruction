@@ -65,9 +65,12 @@ public class NumWordParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_sentence; }
 		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NumWordVisitor ) return ((NumWordVisitor<? extends T>)visitor).visitSentence(this);
-			else return visitor.visitChildren(this);
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).enterSentence(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).exitSentence(this);
 		}
 	}
 
@@ -113,9 +116,12 @@ public class NumWordParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_number; }
 		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NumWordVisitor ) return ((NumWordVisitor<? extends T>)visitor).visitNumber(this);
-			else return visitor.visitChildren(this);
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).enterNumber(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).exitNumber(this);
 		}
 	}
 
@@ -146,9 +152,12 @@ public class NumWordParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_word; }
 		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof NumWordVisitor ) return ((NumWordVisitor<? extends T>)visitor).visitWord(this);
-			else return visitor.visitChildren(this);
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).enterWord(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof NumWordListener ) ((NumWordListener)listener).exitWord(this);
 		}
 	}
 

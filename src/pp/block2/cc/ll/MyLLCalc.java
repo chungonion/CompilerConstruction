@@ -44,7 +44,8 @@ public class MyLLCalc implements LLCalc{
 	private boolean updateFirst(Map<Symbol, Set<Term>> first, Rule rule){
 		int rhsStartSize = first.get(rule.getLHS()).size();
 		Set<Term> rhs = new HashSet<>(); 
-		rhs.addAll(first.get(rule.getRHS().get(0)));
+		Set<Term> toAdd = first.get(rule.getRHS().get(0));
+		rhs.addAll(toAdd);
 		rhs.remove(Symbol.EMPTY);
 		
 		int i = 0;
@@ -157,6 +158,9 @@ public class MyLLCalc implements LLCalc{
 				allSize = allSize + firstp.get(r).size();
 			}
 			ll1 = ll1 && allSize==all.size();
+			if (allSize!=all.size()) {
+			    System.out.println(nt);
+			}
 		}	
 		return ll1;
 	}

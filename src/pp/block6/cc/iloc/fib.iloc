@@ -1,0 +1,83 @@
+loadI 0 => r_0
+loadI 1 => r_1
+loadI 2 => r_2
+loadI 3 => r_3
+loadI 4 => r_4
+loadI 5 => r_fib
+
+
+
+
+
+main_start:	nop
+			in "Argument? " => r_arg
+			push r_arg // parameter
+			push r_1 // register save
+			push r_2 // register save
+			push r_3 // return value
+			loadI #main_end => r_return
+			push r_return // return address
+			jumpI -> fib_start
+main_end:	nop
+			pop => r_dc
+			pop => r_fib
+			out "Result: ", r_fib
+			jumpI -> end_end
+
+fib_start: 	nop
+			loadAI sp, 16 => r_n
+			cmp_LE r_n, r_1 => r_cmp
+			cbr r_cmp -> fib_tb, fib_fb
+fib_tb:		nop
+			storeAI r_1 => sp, 4 
+			jumpI -> fib_end
+			
+fib_fb:		nop
+			subI r_n, 1 => r_n
+			
+			// Build AR for first fib call
+			push r_n // parameter
+			push r_0 // register save
+			push r_0 // register save
+			push r_0 // return value
+			loadI #fib_fb_1 => r_return
+			push r_return // return address
+			jumpI -> fib_start
+fib_fb_1:	nop
+			pop => r_dc
+			pop => r_value
+			pop => r_dc
+			pop => r_dc
+			pop => r_dc
+			storeAI r_value => sp, 12
+			
+			loadAI sp, 16 => r_n
+			subI r_n, 2 => r_n
+			
+			// Build AR for second fib call
+			push r_n // parameter
+			push r_0 // register save
+			push r_0 // register save
+			push r_0 // return value
+			loadI #fib_fb_2 => r_return
+			push r_return // return address
+			jumpI -> fib_start
+fib_fb_2:	nop
+			pop => r_dc
+			pop => r_value
+			pop => r_dc
+			pop => r_dc
+			pop => r_dc
+			storeAI r_value => sp, 8
+			
+			loadAI sp, 12 => r_fib1
+			loadAI sp, 8 => r_fib2
+			add r_fib1, r_fib2 => r_result
+			storeAI r_result => sp, 4
+			jumpI -> fib_end
+fib_end:	nop
+			loadAI sp, 0 => r_return
+			jump -> r_return
+
+
+end_end: nop
